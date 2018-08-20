@@ -1,0 +1,1199 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace DnDv2
+{
+    class MainClass
+    {
+
+        //                                                  体育 骗人的戏法    隐身 奥秘 历史  自然  宗教 调查    动物处理 洞察 医学  知觉  生存  欺骗  恐吓 表演  说服 
+        static double[] ExplorationSkillsInfluence = { 1, 0, 0.8, 0.8, 0.2, 1, 0.2, 0.8, 0.9, 0.1, 0.6, 0.2, 1, 0, 0, 0, 0, };
+        static double[] SocialInteractionSkillsInfluence = { 0, 1, 0.2, 0.2, 0.8, 0, 0.8, 0.2, 0.1, 0.9, 0.6, 0.8, 0, 1, 1, 1, 1, };
+
+
+        public static void notMain(string[] args)
+        {
+            test();
+            // RoolDiceCheck("1D10+0", 100);   
+
+            //initial
+            DataBase db = new DataBase();
+            db.InitialDataBase();
+
+            ////------------------------------------test start---------------------------------------------
+            double result = 0;
+            Player player = db.players[0];
+            //player.AddWeapon(db, "Club");
+
+            //Enemy enemy = db.enemies[8];
+
+            //Console.WriteLine("\n" + player.health + "    " + enemy.health);
+
+            //////1. exploration
+            //double exploratiionResult = player.skills.SkillsCheck(ExplorationSkillsInfluence, 10000);
+            //result += exploratiionResult;
+            //Console.WriteLine("\n1. Exploration test result: \n" + exploratiionResult);
+
+            //////2. social interaction
+            //double socialInteractionResult = player.skills.SkillsCheck(SocialInteractionSkillsInfluence, 10000);
+            //result += socialInteractionResult;
+            //Console.WriteLine("2. Social interaction test  result: \n" + socialInteractionResult);
+
+            //3.combat
+            double combatResult = BattleCheck(100, player, db.enemies[0], db);
+            result += combatResult;
+            Console.WriteLine("3. Combat test result: \n" + combatResult);
+
+            //Console.WriteLine("\nFinal result: \n" + result);
+            ////------------------------------------test finish---------------------------------------------
+
+
+            Console.ReadLine();
+        }
+
+        public static void test()
+        {           
+        }
+
+        public static void RoolDiceCheck(String nDri, int times)
+        {
+            /////////////////////////////////////////////////////////
+            //                  Roll dice Check                    //
+            int result = 0;                                        //
+            for (int i = 0; i < times; i++)                        //
+            {                                                      //
+                result = Dice.RollDice(nDri);                      //
+                Console.WriteLine(nDri + " result: " + result);    //
+            }                                                      //
+            ///////////////////////////////////////////////////////// 
+        }
+
+        ////-------------------------------combat check------------------------------------------------------        
+
+        // Simulate Battle
+        public static int BattleCheck(int times, Player p, List<Enemy> eList, DataBase db)
+        {
+            int result = 0;
+
+            foreach (Enemy e in eList)
+            {
+                result += BattleCheck(times, p, e, db);
+            }
+            return result;
+        }
+        public static int BattleCheck(int times, Player p, Enemy e,           DataBase db)
+        {
+            int result = 0;
+            for (int t = 0; t < times; t++)
+            {
+                Player pCopy = p.GetCopy(db);
+                Enemy eCopy = e.GetCopy();
+                //Console.WriteLine("\n" + p.health + "    " + e.health);
+                //Console.WriteLine(pCopy.health + "    " + eCopy.health);                
+                result += SimulateBattle(pCopy, eCopy);
+                //Console.WriteLine(p.health + "    " + e.health);
+                //Console.WriteLine(pCopy.health + "    " + eCopy.health);
+            }
+            return result;
+        }
+        // Player VS Enemy, || return 1 player win || return 0 enemy win
+        public static int SimulateBattle(Player p, Enemy e)
+        {
+            int result = 0;
+
+            int pDice = 0, eDice = 0;
+            while (pDice == eDice)
+            {
+                pDice = Dice.RollDice("1D10 + 0");
+                eDice = Dice.RollDice("1D10 + 0");
+            }
+            //for (int i = 0; i < 100; i++)
+            //{
+            while (p.health > 0 && e.health > 0)
+            {
+                if (pDice > eDice)//player move first
+                {
+                    Combat(p, e);
+                    if (e.health > 0)
+                        Combat(e, p);
+                }
+                if (pDice < eDice)//enemy move first
+                {
+                    Combat(e, p);
+                    if (p.health > 0)
+                        Combat(p, e);
+                }
+            }
+            //}
+
+            if (e.health <= 0)
+                result = 1;
+            else if (p.health <= 0)
+                result = 0;
+            
+            return result;
+        }
+
+        //----------------------- PVE ------------------------------       
+        // Player VS Enemy, || player attack, enemy defense
+        public static void Combat(Player p, Enemy e)  
+        {
+            int modBouns = 0;
+            //List<Weapon> playerWeapons = p.weapons;   //weapons player own
+            Weapon weapon = p.weapons[0]; //weapons player use for this combat
+
+            //check 1)if the weapon si a finess weapon 2) add ability modify bouns base on the weapon type
+            if (weapon.type == Weapon.Type.Melee)
+                modBouns = (weapon.isFiness) ? ((p.abm.STR > p.abm.DEX) ? p.abm.STR : p.abm.DEX) : p.abm.STR;
+            else if (weapon.type == Weapon.Type.Ranged)
+                modBouns = (weapon.isFiness) ? ((p.abm.STR > p.abm.DEX) ? p.abm.STR : p.abm.DEX) : p.abm.DEX;
+
+            //check 1)if the weapon is in the proficiency weapon list 2) add proficiency bouns
+            bool isProficiencyWeapon = p.proficiencyWeaponList.Exists(o => o == weapon.name);
+            int proficiencyBouns = (isProficiencyWeapon) ? p.proficiencyBouns : 0;
+
+            //total Bouns
+            int AttackBouns = proficiencyBouns + modBouns;
+
+            //the weapon dice
+            Dice playerWeaponDice = weapon.dice;
+
+            //check 1)is attack success 2)damage             
+            AttackChecker acer = AttackCheck(p, AttackBouns, e.armorClass);
+            if (acer.isAttackSuccess)
+                e.health -= DamageCheck(p, weapon, acer.isCritical);   
+        }
+
+        // check if the attack 1)success or not, 2)is cretic or not
+        public static AttackChecker AttackCheck(Player p, int attackBouns, int armorClass)
+        {
+            int d20Result = 0;
+            int d20Result2 = 0;
+            int attack = 0;
+
+            Statue.NAD AttackerNAD = p.nad;
+
+            d20Result = Dice.RollDice("1D20+0");
+            d20Result2 = Dice.RollDice("1D20+0");
+
+             //attack check > armor class   => success
+            //attack check == 20           =? critical
+            //attack check == 1            => always fail
+            bool isCritSuc = false;
+            bool isFail = false;
+            switch (AttackerNAD)
+            {
+                case Statue.NAD.Normal://Normal                    
+                    attack = d20Result + attackBouns;
+                    isFail = (attack == 1);
+                    isCritSuc = (attack == 20);
+                    return new AttackChecker(
+                                                (isFail) ? false : (attack > (armorClass - 1)),
+                                                isCritSuc);
+                case Statue.NAD.Advantage: //Advantage
+                    attack = (d20Result > d20Result2) ? d20Result + attackBouns : d20Result2 + attackBouns;
+                    isCritSuc = (d20Result > d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
+                    isFail = (d20Result > d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
+                    return new AttackChecker(
+                                               (isFail) ? false : (attack > (armorClass - 1)),
+                                               isCritSuc);                   
+                case Statue.NAD.Disadvantage: //Disadvantage
+                    attack = (d20Result < d20Result2) ? d20Result + attackBouns : d20Result2 + attackBouns;
+                    isCritSuc = (d20Result < d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
+                    isFail = (d20Result < d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
+                    return new AttackChecker(
+                                                (isFail) ? false : (attack > (armorClass - 1)),
+                                                isCritSuc);
+            }
+            return new AttackChecker(false, false);           
+        }
+
+        // check 3) how much damage it deal
+        // reference : https://rpg.stackexchange.com/questions/72910/how-do-i-figure-the-dice-and-bonuses-for-attack-rolls-and-damage-rolls
+        // damage = weapon hitdice + mod
+        public static int DamageCheck(Player p, Weapon wp, bool isCritical)
+        {
+            int damage = 0;
+
+            //check 1)if the weapon si a finess weapon 2) add ability modify bouns base on the weapon type
+            int modBouns = 0;
+            if (wp.type == Weapon.Type.Melee)
+                modBouns = (wp.isFiness) ? ((p.abm.STR > p.abm.DEX) ? p.abm.STR : p.abm.DEX) : p.abm.STR;
+            else if (wp.type == Weapon.Type.Ranged)
+                modBouns = (wp.isFiness) ? ((p.abm.STR > p.abm.DEX) ? p.abm.STR : p.abm.DEX) : p.abm.DEX;
+
+            //check 3) weapon damage
+            int weaponDamage = Dice.RollDice(wp.dice.GetDice());
+
+            //check 4)if critical 5)critical damage
+            int criticalDamage = (isCritical ? Dice.RollDice(wp.dice.GetDice()) : 0);
+
+            //check 6)total damage
+            damage = weaponDamage + criticalDamage + modBouns;
+
+            return (damage > 0) ? damage : 0;
+        }
+        //----------------------------------------------------------  
+
+        //----------------------- EVP ------------------------------ 
+        // Enemy VS Player, || enemy attack, player defense
+        public static void Combat(Enemy e, Player p )  
+        {
+            //TODO 1)enemy attack and danmage calculate
+
+            //check 1)is attack success 2)damage             
+            AttackChecker acer = AttackCheck(e,p);
+            if (acer.isAttackSuccess)
+                e.health -= DamageCheck(e,acer.isCritical);
+        }
+       
+        // check if the attack 1)success or not, 2)is critic or not
+        public static AttackChecker AttackCheck(Enemy e, Player p)
+        {
+            int armorClass = p.armorClass;
+            bool isEnemyMelee = (e.ea.meleeAttack.r != 0 || e.ea.meleeAttack.i != 0);
+            bool isEnemyRanged = (e.ea.rangedAttack.r != 0 || e.ea.rangedAttack.i != 0);
+
+            int modBouns = 0;
+            int meleeMod = 0;
+            int RangedMod = 0;
+            if (isEnemyMelee && isEnemyRanged)
+            {
+                meleeMod = e.abm.STR;
+                RangedMod = e.abm.DEX;
+                modBouns = (meleeMod > RangedMod) ? meleeMod : RangedMod;
+            }
+            else if(isEnemyMelee)
+            {
+                modBouns = e.abm.STR;;
+            }
+            else if(isEnemyRanged)
+            {
+                modBouns = e.abm.DEX;   
+            }
+
+
+            int d20Result = 0;
+            int d20Result2 = 0;
+            int attack = 0;
+
+
+            Statue.NAD AttackerNAD = p.nad;
+
+            d20Result = Dice.RollDice("1D20+0");
+            d20Result2 = Dice.RollDice("1D20+0");
+
+            //attack check > armor class   => success
+            //attack check == 20           =? critical
+            //attack check == 1            => always fail
+            bool isCritSuc = false;
+            bool isFail = false;
+            switch (AttackerNAD)
+            {
+                case Statue.NAD.Normal://Normal                    
+                    attack = d20Result + modBouns;
+                    isFail = (attack == 1);
+                    return new AttackChecker( 
+                                                (isFail) ? false : (attack >(armorClass - 1)),
+                                                (d20Result == 20));
+                case Statue.NAD.Advantage: //Advantage
+                    attack = (d20Result > d20Result2) ? d20Result + modBouns : d20Result2 + modBouns;
+                    isCritSuc = (d20Result > d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
+                    isFail = (d20Result > d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
+                    return new AttackChecker( 
+                                                (isFail)? false: (attack > (armorClass - 1)),
+                                                isCritSuc);
+                case Statue.NAD.Disadvantage: //Disadvantage
+                    attack = (d20Result < d20Result2) ? d20Result + modBouns : d20Result2 + modBouns;
+                    isCritSuc = (d20Result < d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
+                    isFail = (d20Result < d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
+                    return new AttackChecker(
+                                                (isFail) ? false : (attack > (armorClass - 1)),
+                                                isCritSuc);
+            }
+            return new AttackChecker(false, false);
+        }
+
+        // check 3) how much damage it deal
+        // reference : https://rpg.stackexchange.com/questions/72910/how-do-i-figure-the-dice-and-bonuses-for-attack-rolls-and-damage-rolls
+        // damage = weapon hitdice + mod
+        public static int DamageCheck(Enemy e, bool isCritical)
+        {
+            int damage = 0;
+
+            // handle melee weapon damage
+            int meleeDamage = Dice.RollDice(e.ea.meleeAttack.GetDice()) + e.abm.STR;
+
+            // handle ranged weapon damage 
+            int rangedDamage = Dice.RollDice(e.ea.rangedAttack.GetDice()) + e.abm.DEX;
+
+            //check 4)if critical 5)critical damage
+            int criticalDamage = (isCritical ? Dice.RollDice(e.ea.meleeAttack.GetDice()) + Dice.RollDice(e.ea.rangedAttack.GetDice()): 0);
+
+            //check 6)total damage
+            damage = meleeDamage  + rangedDamage + criticalDamage;
+
+            return (damage > 0) ? damage : 0;
+        }
+        //----------------------------------------------------------   
+
+        //------------------------------ default setting---------------------------------------------------- 
+    }
+
+    class DataBase
+    {
+        public void InitialDataBase()
+        {
+            AddWeapons();
+            AddPlayers();
+            AddEnemies();
+            AddArmors();
+        }
+
+        //Enemy
+        public List<Enemy> enemies = new List<Enemy>();
+        public void AddEnemies()
+        {
+            //                    |        Name      | AC |     Hit point      |            Ability                |   EnemyAttack >>[     Melee Attack   ][   Ranged Attack  ][MOD]|      
+            enemies.Add(new Enemy("Bat", 12, new Dice("1D4-1"), new Ability(2, 15, 8, 2, 12, 4), new EnemyAttack(new Dice("null"), 0, new Dice("null"), 0, 1)));
+            enemies.Add(new Enemy("Black Bear", 11, new Dice("3D8+6"), new Ability(15, 10, 14, 2, 12, 7), new EnemyAttack(new Dice("1D6+2"), 3, new Dice("2D4+2"), 3, 0)));
+            enemies.Add(new Enemy("Boar", 11, new Dice("2D8+2"), new Ability(13, 11, 12, 2, 9, 5), new EnemyAttack(new Dice("1D6+1"), 3, new Dice("null"), 3, 0)));
+            enemies.Add(new Enemy("Brown Bear", 11, new Dice("4D10+12"), new Ability(19, 10, 16, 2, 13, 7), new EnemyAttack(new Dice("1D8+4"), 5, new Dice("2D6+4"), 5, 0)));
+            enemies.Add(new Enemy("Cat", 12, new Dice("1D4+0"), new Ability(3, 15, 10, 3, 12, 7), new EnemyAttack(new Dice("null"), 0, new Dice("null"), 0, 1)));
+            enemies.Add(new Enemy("Constrictor Snake", 12, new Dice("2D10+2"), new Ability(15, 14, 12, 1, 10, 3), new EnemyAttack(new Dice("1D6+2"), 4, new Dice("1D8+2"), 4, 0)));
+            enemies.Add(new Enemy("Crocodile", 12, new Dice("3D10+3"), new Ability(15, 10, 13, 2, 10, 5), new EnemyAttack(new Dice("1D10+2"), 4, new Dice("null"), 0, 0)));
+            enemies.Add(new Enemy("Dire Wolf", 14, new Dice("5D10+10"), new Ability(17, 15, 15, 3, 12, 7), new EnemyAttack(new Dice("2D6+3"), 5, new Dice("null"), 0, 0)));
+            enemies.Add(new Enemy("Frog", 11, new Dice("1D4-1"), new Ability(1, 13, 8, 1, 8, 3), new EnemyAttack(new Dice("null"), 0, new Dice("null"), 0, 0)));
+        }
+
+        //Player
+        public List<Player> players = new List<Player>();
+        public void AddPlayers()
+        {
+            //                    |         Race              |               Class                      |pb|ac|              equipment weapons    |
+            players.Add(new Player(Player.Race.Dwarf_HillDwarf, Player.Class.Barbarian_PathOfTheBerserker, 2, 10 /*, new List<string>() { "Battleaxe" }*/));
+        }
+
+        //Weapon
+        public List<Weapon> allWeapons = new List<Weapon>();
+        public void AddWeapons()
+        {
+            //name   diceNumber    diceType    isMelee    isFiness
+
+            //simple melee weapons
+            allWeapons.Add(new Weapon("Club", new Dice("1D4 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Dagger", new Dice("1D4 + 0"), Weapon.Type.Melee, true));
+            allWeapons.Add(new Weapon("Greatclub", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Handaxe", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Javelin", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Light hammer", new Dice("1D4 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Mace", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Quarterstaff", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Sickle", new Dice("1D4 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Spear", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+
+            //simple ranged weapons 
+            allWeapons.Add(new Weapon("Crossbow,light", new Dice("1D8 + 0"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Dart", new Dice("1D4 + 0"), Weapon.Type.Ranged, true));
+            allWeapons.Add(new Weapon("Shortbow", new Dice("1D6 + 0"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Sling", new Dice("1D4 + 0"), Weapon.Type.Ranged, false));
+
+            //Martial melee wapons
+            allWeapons.Add(new Weapon("Battleaxe", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Flail", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Glavie", new Dice("1D10 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("GreatAxe", new Dice("1D12 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Greatsword", new Dice("2D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Halberd", new Dice("1D10 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Lance", new Dice("1D12 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Longsword", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Maul", new Dice("2D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Morningstar", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Pike", new Dice("1D10 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Rapier", new Dice("1D8 + 0"), Weapon.Type.Melee, true));
+            allWeapons.Add(new Weapon("Scimitar", new Dice("1D8 + 0"), Weapon.Type.Melee, true));
+            allWeapons.Add(new Weapon("Shortword", new Dice("1D6 + 0"), Weapon.Type.Melee, true));
+            allWeapons.Add(new Weapon("Trident", new Dice("1D6 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("War pick", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Warhammer", new Dice("1D8 + 0"), Weapon.Type.Melee, false));
+            allWeapons.Add(new Weapon("Whip", new Dice("1D4 + 0"), Weapon.Type.Melee, true));
+
+            //Martial Ranged 
+            allWeapons.Add(new Weapon("Blowgun", new Dice("0D0 + 1"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Crossbow,hand", new Dice("1D6 + 0"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Crossbow,heavy", new Dice("1D10 + 0"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Longbow", new Dice("1D8 + 0"), Weapon.Type.Ranged, false));
+            allWeapons.Add(new Weapon("Net", new Dice("0D0 + 0"), Weapon.Type.Ranged, false));
+        }
+
+        //Armor
+        public List<Armor> allArmors = new List<Armor>();
+        public void AddArmors()
+        {
+            //light Armor
+            //                      |        name      |         type              |AC| is add DexMod |MAX     |SN|     stealth            |
+            allArmors.Add(new Armor("Padded"           ,Armor.Type.LisghtArmor     ,11 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Disadvantage));
+            allArmors.Add(new Armor("Leather"          ,Armor.Type.LisghtArmor     ,11 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Normal));
+            allArmors.Add(new Armor("StuddedLeather"   ,Armor.Type.LisghtArmor     ,12 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Normal));
+
+            //Medium Armor
+
+            //Heavy Armor
+
+            //Shield
+        }
+    }
+    class Ability
+    {
+        public int STR, DEX, CON, INT, WIS, CHA;        
+        public Ability(int STR, int DEX, int CON, int INT, int WIS, int CHA)
+        {
+            this.STR = STR;
+            this.DEX = DEX;
+            this.CON = CON;
+            this.INT = INT;
+            this.WIS = WIS;
+            this.CHA = CHA;
+        }        
+    }
+    class AbilityMod
+    {
+        public int STR, DEX, CON, INT, WIS, CHA;
+        public AbilityMod(Ability ab)
+        {
+            this.STR = (ab.STR > 10) ? (int)Math.Floor((ab.STR - 10) / 2 + 0f) : (int)Math.Floor((ab.STR - 1 - 10) / 2 + 0f);
+            this.DEX = (ab.DEX > 10) ? (int)Math.Floor((ab.DEX - 10) / 2 + 0f) : (int)Math.Floor((ab.DEX - 1 - 10) / 2 + 0f);
+            this.CON = (ab.CON > 10) ? (int)Math.Floor((ab.CON - 10) / 2 + 0f) : (int)Math.Floor((ab.CON - 1 - 10) / 2 + 0f);
+            this.INT = (ab.INT > 10) ? (int)Math.Floor((ab.INT - 10) / 2 + 0f) : (int)Math.Floor((ab.INT - 1 - 10) / 2 + 0f);
+            this.WIS = (ab.WIS > 10) ? (int)Math.Floor((ab.WIS - 10) / 2 + 0f) : (int)Math.Floor((ab.WIS - 1 - 10) / 2 + 0f);
+            this.CHA = (ab.CHA > 10) ? (int)Math.Floor((ab.CHA - 10) / 2 + 0f) : (int)Math.Floor((ab.CHA - 1 - 10) / 2 + 0f);
+        }
+    }
+    class Weapon
+    {
+        public enum Type
+        {
+            Melee,
+            Ranged
+        }
+
+        public string name;
+        public Dice dice;
+        //public int diceNumber;
+        //public int diceType;
+
+        public Type type;
+        public bool isFiness;
+        //public int bouns;
+
+        public string[] meleeWeaponList = { "Club", "Dagger", "Greatclub", "Handaxe", "Javelin", "Light hammer", "Light hammer", "Mace", "Quarterstaff", "Sickle", "Spear" };
+        public string[] rangeWeaponList = { "Crossbow,light", "Dart", "Shortbow", "Sling" };
+        public string[] martialMeleeWeaponList = { "Battleaxe", "Flail", "Glavie", "GreatAxe", "Greatsword", "Halberd", "Lance", "Longsword", "Maul", "Morningstar", "Pike", "Rapier", "Scimitar", "Shortword", "Trident", "War pick", "Warhammer", "Whip" };
+        public string[] martialRangedWeaponList = { "Blowgun", "Crossbow,hand", "Crossbow,heavy", "Longbow", "Net" };
+
+        public Weapon(string name, Dice dice, Type type,bool isFiness)//,int bouns)
+        {
+            this.name = name;
+            this.dice = dice;
+            //this.diceNumber = diceNumber;
+            //this.diceType = diceType;
+            this.type = type;
+            this.isFiness = isFiness;
+            //this.bouns = bouns;
+        }
+    }
+    class Armor : Statue
+    {
+        public string[] lightArmorList = { "Padded","Leather","StuddedLeather" };
+        public string[] mediumArmorList = { "Hide", "ChainShirt", "ScaleMail", "BreastPlate", "HalfPlate" };
+        public string[] HeavyArmor = {"RingMail","ChainMail","Splint","Plate" };
+        public string[] Shield = { "Shield" };
+
+        public string name;
+        public enum Type
+        {
+            LisghtArmor,
+            MediumArmor,
+            HeavyArmor,
+            Shield
+        }
+        public Type type;
+        public int armorClass;
+        public ACMod acm;
+        public int StrNeed;
+        public NAD Stealth;
+
+        public Armor(string name, Type type, int armorClass, ACMod acm, int StrNeed, NAD Stealth)
+        {
+            this.name = name;
+            this.type = type;
+            this.armorClass = armorClass;
+            this.acm = acm;
+            this.StrNeed = StrNeed;
+            this.Stealth = Stealth;
+        }
+
+        public int GetAC(Player p)
+        {
+            return (armorClass + ((acm.isDexMod) ?((p.abm.DEX > acm.MaxMod) ? acm.MaxMod : p.abm.DEX): 0));
+        }
+    }
+    class Dice
+    {
+        public int n;
+        public int r;
+        public int i;
+
+        public Dice(string nDri)
+        {
+            if (nDri == null)
+                nDri = "0D0+0";
+            else if (nDri == "null" || nDri == "Null")
+            {
+                this.n = 0;
+                this.r = 0;
+                this.i = 0;
+            }
+            else if (nDri.IndexOf("+") >= 0)
+            {
+                string[] templStringArray = nDri.Split(new char[2] { 'D', '+'});
+                this.n = int.Parse(templStringArray[0]);
+                this.r = int.Parse(templStringArray[1]);
+                this.i = int.Parse(templStringArray[2]);
+            }
+            else if (nDri.IndexOf("-") >= 0)
+            {
+                string[] templStringArray = nDri.Split(new char[2] { 'D', '-' });
+                this.n = int.Parse(templStringArray[0]);
+                this.r = - int.Parse(templStringArray[1]);
+                this.i = int.Parse(templStringArray[2]);
+            }
+            else
+            {
+                string[] templStringArray = nDri.Split(new char[1] { 'D'});
+                this.n = int.Parse(templStringArray[0]);
+                this.r = int.Parse(templStringArray[1]);
+                this.i = 0;
+            }
+        }
+
+        public static int RollDice(string dice)
+        {
+            Dice nDri = new Dice(dice);
+
+            int result = 0;
+            for (int n = 0; n < nDri.n; n++)
+            {
+                Random rdm = new Random();
+                if (nDri.r == 4 || nDri.r == 6 || nDri.r == 8 || nDri.r == 12 || nDri.r == 20)
+                    result += new Random(Guid.NewGuid().GetHashCode()).Next(1, nDri.r + 1);
+                if (nDri.r == 10 || nDri.r == 100)
+                    result += new Random(Guid.NewGuid().GetHashCode()).Next(0, nDri.r);
+            }
+
+            result += nDri.i;
+            return result;
+        }
+
+        public string GetDice()
+        {
+            if( i < 0)
+                return (n + "D" + r + "-" + Math.Abs(i));
+            else
+                return (n + "D" + r + "+" + i);            
+        }
+    }
+    class Statue
+    {    
+        public enum NAD
+        {
+            Normal,
+            Advantage,
+            Disadvantage
+        }
+    }
+    class EnemyAttack
+    {
+        public Dice meleeAttack;
+        public int meleeAttackHitModify;
+        public Dice rangedAttack;
+        public int rangedAttackHitModify;
+        public int modify;
+
+        public EnemyAttack(Dice meleeAttack,int meleeAttackHitModify, Dice rangedAttack,int rangedAttackHitModify, int modify)
+        {
+            this.meleeAttack = meleeAttack;
+            this.meleeAttackHitModify = meleeAttackHitModify;
+            this.rangedAttack = rangedAttack;
+            this.rangedAttackHitModify = rangedAttackHitModify;
+            this.modify = modify;
+        }
+    }
+    class Player : Unit 
+    {       
+        public enum Race
+        {
+            Dwarf_HillDwarf,
+            Dwarf_MountainDwarf,
+        }
+        public enum Class
+        {
+            Barbarian_PathOfTheBerserker,
+            Barbarian_PathOfTheWarrior
+        }
+                
+        public Race pRace;
+        public Class pClass;
+
+        //class decide player's primary ability
+        public List<string> primaryAbility = new List<string>();
+        
+        //class decide player's hit dice
+        public Dice hitDice = new Dice("0D0+0");
+        public int maxHealth;
+        public int health;
+        
+        //public Ability ab;
+        //public AbilityMod abm;
+        public Skills skills;
+
+        public int proficiencyBouns;
+        public List<string> proficiencyWeaponList = new List<string> { };
+        public Weapon weapon;        //public int armorClass;   
+        
+        public List<string> tempWeaponList = new List<string>(); // store weapon name player own
+        
+        
+        //public Player (Race pRace, Class pClass, Dice hitDice, Ability ab, int proficiencyBouns, int armorClass) : base(hitDice,ab,armorClass)
+        //{
+        //    this.pRace = pRace;
+        //    this.pClass = pClass;
+
+        //    this.hitDice = hitDice;
+        //    this.maxHealth = Dice.RollDice(hitDice.n + "D" + hitDice.r + "+" + hitDice.i);
+        //    this.health = maxHealth;
+
+        //    this.ab = ab;
+        //    this.abm = new AbilityMod(ab);
+        //    this.skills = new Skills(abm);
+
+        //    this.proficiencyBouns = proficiencyBouns;
+        //    this.proficiencyWeaponList = new List<string>();
+        //    this.armorClass = armorClass;
+        //}
+        
+        public Player(Race pRace, Class pClass, int proficiencyBouns, int armorClass) 
+        {
+            Ini();
+            this.pRace = pRace;
+            this.pClass = pClass;
+            RaceModify(pRace); 
+            ClassModify(pClass); 
+                        
+            this.maxHealth = Dice.RollDice(hitDice.n + "D" + hitDice.r + "+" + hitDice.i);
+            this.health = maxHealth;
+
+            //automatic set ability base on class primary ablity
+            AutoSetAbility(primaryAbility);
+            
+            //calculate ability and skills modify
+            this.abm = new AbilityMod(ab);
+            this.skills = new Skills(abm);
+            
+            this.proficiencyBouns = proficiencyBouns;
+            
+            //handle weapon
+            foreach (string weaponName in tempWeaponList)
+            {
+                this.AddWeapon(db,weaponName);
+            }
+                    
+            this.proficiencyWeaponList = new List<string>();
+            this.armorClass = armorClass;           
+        }
+
+        void Ini()
+        {
+            this.ab = new Ability(0, 0, 0, 0, 0, 0);
+            this.abm = new AbilityMod(ab);
+            hitDice = new Dice("0D0+0");
+            maxHealth =0;
+            health =0;
+    }
+
+        void UpdateData()
+        {
+            this.abm = new AbilityMod(ab);
+            this.skills = new Skills(abm);
+        }
+        
+        public void RaceModify(Race race)
+        {
+            switch (race)
+            {
+                case Race.Dwarf_HillDwarf:
+                    ab.CON += 2;
+                    ab.WIS += 1;
+                    hitDice.n += 1;
+                    break;
+            }
+        }
+
+        public void ClassModify(Class c)
+        {
+            switch (c)
+            {
+                case Class.Barbarian_PathOfTheBerserker:
+                    hitDice.n += 1;
+                    hitDice.r += 12;
+                    primaryAbility.Add("Strength");
+                    tempWeaponList.Add("GreatAxe");
+                    break;
+            }
+        }
+
+        //set ability base on the primary ability
+        public List<int> AbilityScore = new List<int>() { 15, 14, 13, 12, 10, 8 };
+        public void AutoSetAbility(List<string> primaryAbility)
+        {
+            List<int> AbilityScoreCopy = AbilityScore;
+
+            string p1 = primaryAbility[0];
+            string p2 = (primaryAbility.Count > 2) ? primaryAbility[1] : "null";
+
+            switch (p1)
+            {
+                case "STR":
+                    ab.STR = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+                case "DEX":
+                    ab.DEX = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+                case "CON":
+                    ab.CON = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+                case "WIS":
+                    ab.WIS = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+                case "CHA":
+                    ab.CHA = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+                case "INT":
+                    ab.INT = AbilityScoreCopy[0];
+                    AbilityScoreCopy.RemoveAt(0);
+                    break;
+            }
+            if (p2 != "null")
+            {
+                switch (p2)
+                {
+                    case "STR":
+                        ab.STR = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                    case "DEX":
+                        ab.DEX = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                    case "CON":
+                        ab.CON = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                    case "WIS":
+                        ab.WIS = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                    case "CHA":
+                        ab.CHA = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                    case "INT":
+                        ab.INT = AbilityScoreCopy[0];
+                        AbilityScoreCopy.RemoveAt(0);
+                        break;
+                }
+            }
+
+            if (ab.STR == 0)
+            {
+                int r = new Random(Guid.NewGuid().GetHashCode()).Next(0, AbilityScoreCopy.Count-1);
+                ab.STR = AbilityScoreCopy[r];
+                AbilityScoreCopy.RemoveAt(r);
+            }
+            if (ab.DEX == 0)
+            {
+                int r = new Random(Guid.NewGuid().GetHashCode()).Next(0, AbilityScoreCopy.Count - 1);
+                ab.DEX = AbilityScoreCopy[r];
+                AbilityScoreCopy.RemoveAt(r);
+            }
+            if (ab.CHA == 0)
+            {
+                int r = new Random(Guid.NewGuid().GetHashCode()).Next(0, AbilityScoreCopy.Count - 1);
+                ab.CHA = AbilityScoreCopy[r];
+                AbilityScoreCopy.RemoveAt(r);
+            }
+            if (ab.WIS == 0)
+            {
+                int r = new Random(Guid.NewGuid().GetHashCode()).Next(0, AbilityScoreCopy.Count -1);
+                ab.WIS = AbilityScoreCopy[r];
+                AbilityScoreCopy.RemoveAt(r);
+            }
+            if (ab.CON == 0)
+            {
+                int r = new Random(Guid.NewGuid().GetHashCode()).Next(0, AbilityScoreCopy.Count -1);
+                ab.CON = AbilityScoreCopy[r];
+                AbilityScoreCopy.RemoveAt(r);
+            }
+            if (ab.INT == 0)
+            {                
+                ab.INT = AbilityScoreCopy[0];
+            }
+
+        }
+
+        public Player GetCopy(DataBase db)
+        {
+            
+            Player playerCopy = new Player(pRace, pClass, proficiencyBouns, armorClass);            
+            //playerCopy.weapons = this.weapons;            
+            //if (weapons.Count > 0)
+            //{                
+            //    for (int i = 0; i > weapons.Count; i++)
+            //    {
+            //        playerCopy.AddWeapon(db,weapons[i].name );
+            //    }
+            //}
+            return playerCopy;
+        }
+
+        public void ExtraAbility(int StrNum, int DexNum, int ConNum, int IntNum, int WisNum, int ChaNum)
+        {
+            ab.STR += StrNum;
+            ab.DEX += DexNum;
+            ab.CON += ConNum;
+            ab.INT += IntNum;
+            ab.WIS += WisNum;
+            ab.CHA += ChaNum;
+
+            UpdateData();
+        }
+        public void AddProficiencyBouns(int newNumber)
+        {
+            this.proficiencyBouns += newNumber;
+        }
+        public void AddProficiencyWeapon(string[] list)
+        {
+            int length = list.Length;
+            for (int i = 0; i < length; i++)
+            {
+                this.proficiencyWeaponList.Add(list[i]);
+            }
+        }
+        public void AddSkill(String skill, int proficiency)
+        {
+            switch (skill)
+            {
+                case "Athletics":
+                    skills.Athletics += proficiency;
+                    break;
+                case "SleightofHand":
+                    skills.SleightofHand += proficiency;
+                    break;
+                case "Stealth":
+                    skills.Stealth += proficiency;
+                    break;
+                case "Arcana":
+                    skills.Arcana += proficiency;
+                    break;
+                case "History":
+                    skills.History += proficiency;
+                    break;
+                case "Nature":
+                    skills.Nature += proficiency;
+                    break;
+                case "Religon":
+                    skills.Religion += proficiency;
+                    break;
+                case "Investigation":
+                    skills.Investigation += proficiency;
+                    break;
+                case "AnimalHandling":
+                    skills.AnimalHandling += proficiency;
+                    break;
+                case "Insight":
+                    skills.Insight += proficiency;
+                    break;
+                case "Medicine":
+                    skills.Medicine += proficiency;
+                    break;
+                case "Perception":
+                    skills.Perception += proficiency;
+                    break;
+                case "Survival":
+                    skills.Survival += proficiency;
+                    break;
+                case "Deception":
+                    skills.Deception += proficiency;
+                    break;
+                case "Intimidation":
+                    skills.Intimidation += proficiency;
+                    break;
+                case "Performance":
+                    skills.Performance += proficiency;
+                    break;
+                case "Persuasion":
+                    skills.Persuasion += proficiency;
+                    break;
+            }
+        }
+        public void ClearProficiencyWeapon()
+        {
+            this.proficiencyWeaponList.Clear();
+        }      
+    }
+    class Skills : Statue
+    {
+        List<int> SkillsList = new List<int> {};
+
+        public int Athletics,SleightofHand, Stealth, Arcana, History, Nature, Religion, Investigation, AnimalHandling, Insight, Medicine, Perception, Survival, Deception, Intimidation, Performance, Persuasion;
+               
+
+        public Skills(AbilityMod abm)
+        {
+            //Str
+            this.Athletics       = abm.STR;
+
+            //Dex
+            this.SleightofHand   = abm.DEX;
+            this.Stealth         = abm.DEX;
+
+            //Con
+
+            //Int
+            this.Arcana          = abm.INT;
+            this.History         = abm.INT;
+            this.Nature          = abm.INT;
+            this.Religion        = abm.INT;
+            this.Investigation   = abm.INT;
+
+            //Wis
+            this.AnimalHandling  = abm.WIS;
+            this.Insight         = abm.WIS;
+            this.Medicine        = abm.WIS;
+            this.Perception      = abm.WIS;
+            this.Survival        = abm.WIS;
+
+            //Cha
+            this.Deception       = abm.CHA;
+            this.Intimidation    = abm.CHA;
+            this.Performance     = abm.CHA;
+            this.Persuasion      = abm.CHA;
+        }        
+        public static double SkillCheck(int skill, int times, NAD nadstate)
+        {
+            int veryEasySuccess = 0;            //5
+            int easySuccess = 0;                //10
+            int mediumSuccess = 0;              //15
+            int hardSuccess = 0;                //20
+            int veryHardSuccess = 0;            //25
+            int nearlyImpossibleSuccess = 0;    //30
+
+            for (int i = 0; i < times; i++)
+            {
+                int diceResult1 = Dice.RollDice("1D20+0");
+                int diceResult2 = Dice.RollDice("1D20+0");
+                int diceResult = 0;
+
+                switch (nadstate)
+                {
+                    case NAD.Normal:
+                        diceResult = diceResult1;
+                        break;
+                    case NAD.Advantage:
+                        diceResult = (diceResult1 > diceResult2) ? diceResult1 : diceResult2;
+                        break;
+                    case NAD.Disadvantage:
+                        diceResult = (diceResult1 < diceResult2) ? diceResult1 : diceResult2;
+                        break;
+                }
+
+                veryEasySuccess = ((diceResult + skill) > 5) ? veryEasySuccess + 1 : veryEasySuccess;
+                easySuccess = ((diceResult + skill) > 10) ? easySuccess + 1 : easySuccess;
+                mediumSuccess = ((diceResult + skill) > 15) ? mediumSuccess + 1 : mediumSuccess;
+                hardSuccess = ((diceResult + skill) > 20) ? hardSuccess + 1 : hardSuccess;
+                veryHardSuccess = ((diceResult + skill) > 25) ? veryHardSuccess + 1 : veryHardSuccess;
+                nearlyImpossibleSuccess = ((diceResult + skill) > 30) ? nearlyImpossibleSuccess + 1 : nearlyImpossibleSuccess;
+            }
+
+            double result = (Convert.ToDouble(veryEasySuccess) / Convert.ToDouble(times)) * 12 +
+                            (Convert.ToDouble(easySuccess) / Convert.ToDouble(times)) * 18 +
+                            (Convert.ToDouble(mediumSuccess) / Convert.ToDouble(times)) * 30 +
+                            (Convert.ToDouble(hardSuccess) / Convert.ToDouble(times)) * 18 +
+                            (Convert.ToDouble(veryHardSuccess) / Convert.ToDouble(times)) * 12 +
+                            (Convert.ToDouble(nearlyImpossibleSuccess) / Convert.ToDouble(times)) * 10;
+
+            return result;
+        }        
+        public double SkillsCheck(double[] checkList, int times)
+        {
+            AddSkills();
+
+            double totalScore = 0;
+
+            for (int i = 0; i < SkillsList.Count; i++)
+            {
+
+                if (checkList[i] != 0)
+                {
+                    double result = 0;
+                    result = SkillCheck(SkillsList[i], times * 3, NAD.Advantage) +
+                             SkillCheck(SkillsList[i], times * 8, NAD.Normal) +
+                             SkillCheck(SkillsList[i], times * 3, NAD.Disadvantage);
+                    totalScore += result * checkList[i];
+                }
+            }
+            return totalScore;
+        }
+        
+        public void AddSkills()
+        {
+            SkillsList.Clear();
+            SkillsList.Add(Athletics);
+            SkillsList.Add(SleightofHand);
+            SkillsList.Add(Stealth);
+            SkillsList.Add(Arcana);
+            SkillsList.Add(History);
+            SkillsList.Add(Nature);
+            SkillsList.Add(Religion);
+            SkillsList.Add(Investigation);
+            SkillsList.Add(AnimalHandling);
+            SkillsList.Add(Insight);
+            SkillsList.Add(Medicine);
+            SkillsList.Add(Perception);
+            SkillsList.Add(Survival);
+            SkillsList.Add(Deception);
+            SkillsList.Add(Intimidation);
+            SkillsList.Add(Performance);
+            SkillsList.Add(Persuasion);
+        }
+
+    }
+    class Unit : Statue
+    {
+        public DataBase db = new DataBase();
+
+        //public Dice hitDice;
+        public int maxHealth;
+        public int health;
+
+        public Ability ab;
+        public AbilityMod abm;
+
+        //for battle
+        public AttackChecker attackChecker;
+        public int armorClass;        
+        public NAD nad;
+
+        public List<Weapon> weapons = new List<Weapon>();
+
+        public Unit()
+        {
+            Ini();
+            //this.hitDice = hitDice;            
+            this.abm = new AbilityMod(ab);
+        }
+
+        public void Ini()
+        {
+            db.InitialDataBase();
+            this.ab = new Ability(0, 0, 0, 0, 0, 0);
+        }
+
+        // Add new weapon to player weapon list
+        public void AddWeapon(DataBase dataBase, string weapon)
+        {
+            foreach (Weapon wp in db.allWeapons)
+            {
+                if (wp.name == weapon)
+                    weapons.Add(wp);
+            }   
+        }
+                
+        public Weapon FindWeapon(string name)
+        {
+            foreach (Weapon wp in weapons)
+            {
+                if (wp.name == name)
+                    return wp;
+            }
+            return new Weapon("", new Dice("0D0+0"), Weapon.Type.Melee, false);
+        }
+
+    }
+    class Enemy : Unit
+    {
+        public string name;
+        //public int armorClass;
+
+        public Dice hitDice;
+        public int maxHealth;
+        public int health;
+
+        //public Ability ab;
+        //public AbilityMod abm;
+
+        public EnemyAttack ea;
+
+        public Enemy(string name,int armorClass, Dice hitDice, Ability ab , EnemyAttack ea)
+        {
+            this.name = name;
+            this.armorClass = armorClass;
+            this.hitDice = hitDice;
+            this.ab = ab;
+            this.abm = new AbilityMod(ab);
+
+            this.ea = ea;
+        }
+
+        public Enemy GetCopy()
+        {
+            Enemy enemyCopy = new Enemy(name, armorClass, hitDice, ab, ea);
+            //enemyCopy.health = this.health;
+            //enemyCopy.maxHealth = this.maxHealth;
+            return enemyCopy;
+        }
+
+        public void Ini()
+        {
+            ab = new Ability(0, 0, 0, 0, 0, 0);
+        }
+    }
+    class AttackChecker
+    {
+        public bool isAttackSuccess;
+        public bool isCritical;
+
+        public AttackChecker(bool isAttackSuccess, bool isCritical)
+        {
+            this.isAttackSuccess = isAttackSuccess;
+            this.isCritical = isCritical;
+        }
+    }
+    class ACMod
+    {        
+        public bool isDexMod;
+        public int MaxMod;
+
+        public ACMod(bool isDexMod, int MaxMod)
+        {
+            this.isDexMod = isDexMod;
+            this.MaxMod = MaxMod;
+        }
+    }
+}

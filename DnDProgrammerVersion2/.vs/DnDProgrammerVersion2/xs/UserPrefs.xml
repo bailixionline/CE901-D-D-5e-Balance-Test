@@ -1,0 +1,15 @@
+﻿<Properties StartupConfiguration="{4D6DEDFF-64CF-41BE-AEEC-9CE5DBDB50B8}|Default">
+  <MonoDevelop.Ide.ItemProperties.DnDProgrammerVersion2 PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="DnDProgrammerVersion2/version1.0.cs">
+    <Files>
+      <File FileName="DnDProgrammerVersion2/version2.2.cs" Line="1" Column="1" />
+      <File FileName="DnDProgrammerVersion2/version1.0.cs" Line="25" Column="42" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MultiItemStartupConfigurations />
+</Properties>

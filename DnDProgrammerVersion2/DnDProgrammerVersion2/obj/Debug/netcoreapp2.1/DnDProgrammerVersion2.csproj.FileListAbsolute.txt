@@ -1,0 +1,22 @@
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/bin/Debug/netcoreapp2.1/DnDProgrammerVersion2.deps.json
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/bin/Debug/netcoreapp2.1/DnDProgrammerVersion2.runtimeconfig.json
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/bin/Debug/netcoreapp2.1/DnDProgrammerVersion2.runtimeconfig.dev.json
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/bin/Debug/netcoreapp2.1/DnDProgrammerVersion2.dll
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/bin/Debug/netcoreapp2.1/DnDProgrammerVersion2.pdb
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.csprojResolveAssemblyReference.cache
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.csproj.CoreCompileInputs.cache
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.AssemblyInfoInputs.cache
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.AssemblyInfo.cs
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.dll
+/Users/chaowenyang/Library/Mobile Documents/com~apple~CloudDocs/_杨朝文/DnDv2/DnDProgrammerVersion2/DnDProgrammerVersion2/obj/Debug/netcoreapp2.1/DnDProgrammerVersion2.pdb
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\bin\Debug\netcoreapp2.1\DnDProgrammerVersion2.deps.json
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\bin\Debug\netcoreapp2.1\DnDProgrammerVersion2.runtimeconfig.json
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\bin\Debug\netcoreapp2.1\DnDProgrammerVersion2.runtimeconfig.dev.json
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\bin\Debug\netcoreapp2.1\DnDProgrammerVersion2.dll
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\bin\Debug\netcoreapp2.1\DnDProgrammerVersion2.pdb
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.csproj.CoreCompileInputs.cache
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.AssemblyInfoInputs.cache
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.AssemblyInfo.cs
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.dll
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.pdb
+C:\Users\baili\iCloudDrive\_杨朝文\DnDv2\DnDProgrammerVersion2\DnDProgrammerVersion2\obj\Debug\netcoreapp2.1\DnDProgrammerVersion2.csprojResolveAssemblyReference.cache
