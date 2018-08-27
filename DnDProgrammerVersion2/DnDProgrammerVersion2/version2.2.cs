@@ -118,8 +118,8 @@ namespace DnDv22
         // Player VS Enemy, || return 1 player win || return 0 enemy win
         public static int SimulateBattle(Player p, Enemy e)
         {
-            p.nad = Statue.NAD.Normal;
-            e.nad = Statue.NAD.Normal;
+            p.nad = Status.NAD.Normal;
+            e.nad = Status.NAD.Normal;
 
             int result = 0;
 
@@ -216,7 +216,7 @@ namespace DnDv22
             int d20Result2 = 0;
             int attack = 0;
 
-            Statue.NAD AttackerNAD = p.nad;
+            Status.NAD AttackerNAD = p.nad;
 
             d20Result = Dice.RollDice("1D20+0");
             d20Result2 = Dice.RollDice("1D20+0");
@@ -229,7 +229,7 @@ namespace DnDv22
             bool isAttackSuccess;
             switch (AttackerNAD)
             {
-                case Statue.NAD.Normal://Normal                    
+                case Status.NAD.Normal://Normal                    
                     attack = d20Result + attackBouns;
                     isFail = (attack == 1);
                     isCritSuc = (attack == 20);
@@ -243,7 +243,7 @@ namespace DnDv22
 
                     return new AttackChecker(isAttackSuccess,isCritSuc);
 
-                case Statue.NAD.Advantage: //Advantage
+                case Status.NAD.Advantage: //Advantage
                     attack = (d20Result > d20Result2) ? d20Result + attackBouns : d20Result2 + attackBouns;
                     isCritSuc = (d20Result > d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
                     isFail = (d20Result > d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
@@ -257,7 +257,7 @@ namespace DnDv22
 
                     return new AttackChecker(isAttackSuccess,isCritSuc);  
                     
-                case Statue.NAD.Disadvantage: //Disadvantage
+                case Status.NAD.Disadvantage: //Disadvantage
                     attack = (d20Result < d20Result2) ? d20Result + attackBouns : d20Result2 + attackBouns;
                     isCritSuc = (d20Result < d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
                     isFail = (d20Result < d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
@@ -352,7 +352,7 @@ namespace DnDv22
             int attack = 0;
 
 
-            Statue.NAD AttackerNAD = p.nad;
+            Status.NAD AttackerNAD = p.nad;
 
             d20Result = Dice.RollDice("1D20+0");
             d20Result2 = Dice.RollDice("1D20+0");
@@ -364,20 +364,20 @@ namespace DnDv22
             bool isFail = false;
             switch (AttackerNAD)
             {
-                case Statue.NAD.Normal://Normal                    
+                case Status.NAD.Normal://Normal                    
                     attack = d20Result + bouns;
                     isFail = (d20Result == 1);
                     return new AttackChecker( 
                                                 (isFail) ? false : (attack >(armorClass - 1)),
                                                 (d20Result == 20));
-                case Statue.NAD.Advantage: //Advantage
+                case Status.NAD.Advantage: //Advantage
                     attack = (d20Result > d20Result2) ? d20Result + bouns : d20Result2 + bouns;
                     isCritSuc = (d20Result > d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
                     isFail = (d20Result > d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
                     return new AttackChecker( 
                                                 (isFail)? false: (attack > (armorClass - 1)),
                                                 isCritSuc);
-                case Statue.NAD.Disadvantage: //Disadvantage
+                case Status.NAD.Disadvantage: //Disadvantage
                     attack = (d20Result < d20Result2) ? d20Result + bouns : d20Result2 + bouns;
                     isCritSuc = (d20Result < d20Result2) ? (d20Result == 20) : (d20Result2 == 20);
                     isFail = (d20Result < d20Result2) ? (d20Result == 1) : (d20Result2 == 1);
@@ -490,7 +490,7 @@ namespace DnDv22
     }
 
     //unit | include player & enemy
-    class Statue
+    class Status
     {    
         public enum NAD
         {
@@ -499,7 +499,7 @@ namespace DnDv22
             Disadvantage
         }
     }
-    class Unit : Statue 
+    class Unit : Status 
     {
         //public Dice hitDice;
         public int maxHealth;
@@ -1440,7 +1440,7 @@ namespace DnDv22
             this.CHA = (ab.CHA > 10) ? (int)Math.Floor((ab.CHA - 10) / 2 + 0f) : (int)Math.Floor((ab.CHA - 1 - 10) / 2 + 0f);
         }
     }
-    class Skills : Statue
+    class Skills : Status
     {
         List<int> SkillsList = new List<int> {};
 
@@ -1699,7 +1699,7 @@ namespace DnDv22
             this.isFiness = isFiness;
         }
     }
-    class Armor : Statue
+    class Armor : Status
     {
         //public string[] lightArmorList = { "Padded", "Leather", "StuddedLeather" };
         //public string[] mediumArmorList = { "Hide", "ChainShirt", "ScaleMail", "BreastPlate", "HalfPlate" };
@@ -1927,25 +1927,25 @@ namespace DnDv22
         {
             //light Armor
             //                      |        name      |         type              |AC| is add DexMod |MAX     |SN|     stealth            |
-            allArmors.Add(new Armor("Padded"           ,Armor.Type.LightArmor     ,11 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Disadvantage));
-            allArmors.Add(new Armor("Leather"          ,Armor.Type.LightArmor     ,11 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Normal));
-            allArmors.Add(new Armor("StuddedLeather"   ,Armor.Type.LightArmor     ,12 ,new ACMod(true ,99)    ,0 ,Statue.NAD.Normal));
+            allArmors.Add(new Armor("Padded"           ,Armor.Type.LightArmor     ,11 ,new ACMod(true ,99)    ,0 ,Status.NAD.Disadvantage));
+            allArmors.Add(new Armor("Leather"          ,Armor.Type.LightArmor     ,11 ,new ACMod(true ,99)    ,0 ,Status.NAD.Normal));
+            allArmors.Add(new Armor("StuddedLeather"   ,Armor.Type.LightArmor     ,12 ,new ACMod(true ,99)    ,0 ,Status.NAD.Normal));
 
             //Medium Armor
-            allArmors.Add(new Armor("Hide"             ,Armor.Type.MediumArmor    ,12 ,new ACMod(true ,2)     ,0 ,Statue.NAD.Normal));
-            allArmors.Add(new Armor("ChainShirt"       ,Armor.Type.MediumArmor    ,13 ,new ACMod(true ,2)     ,0 ,Statue.NAD.Normal));
-            allArmors.Add(new Armor("ScaleMail"        ,Armor.Type.MediumArmor    ,14 ,new ACMod(true ,2)     ,0 ,Statue.NAD.Disadvantage));
-            allArmors.Add(new Armor("Breastplate"      ,Armor.Type.MediumArmor    ,14 ,new ACMod(true ,2)     ,0 ,Statue.NAD.Normal));
-            allArmors.Add(new Armor("HalfPlate"        ,Armor.Type.MediumArmor    ,15 ,new ACMod(true ,2)     ,0 ,Statue.NAD.Disadvantage));
+            allArmors.Add(new Armor("Hide"             ,Armor.Type.MediumArmor    ,12 ,new ACMod(true ,2)     ,0 ,Status.NAD.Normal));
+            allArmors.Add(new Armor("ChainShirt"       ,Armor.Type.MediumArmor    ,13 ,new ACMod(true ,2)     ,0 ,Status.NAD.Normal));
+            allArmors.Add(new Armor("ScaleMail"        ,Armor.Type.MediumArmor    ,14 ,new ACMod(true ,2)     ,0 ,Status.NAD.Disadvantage));
+            allArmors.Add(new Armor("Breastplate"      ,Armor.Type.MediumArmor    ,14 ,new ACMod(true ,2)     ,0 ,Status.NAD.Normal));
+            allArmors.Add(new Armor("HalfPlate"        ,Armor.Type.MediumArmor    ,15 ,new ACMod(true ,2)     ,0 ,Status.NAD.Disadvantage));
 
             //Heavy Armor
-            allArmors.Add(new Armor("RingMail"         ,Armor.Type.HeavyArmor     ,14 ,new ACMod(false,0)     ,0 ,Statue.NAD.Disadvantage));
-            allArmors.Add(new Armor("ChainMail"        ,Armor.Type.HeavyArmor     ,16 ,new ACMod(false,0)     ,13,Statue.NAD.Disadvantage));
-            allArmors.Add(new Armor("Splint"           ,Armor.Type.HeavyArmor     ,17 ,new ACMod(false,0)     ,15,Statue.NAD.Disadvantage));
-            allArmors.Add(new Armor("Plate"            ,Armor.Type.HeavyArmor     ,18 ,new ACMod(false,0)     ,15,Statue.NAD.Disadvantage));
+            allArmors.Add(new Armor("RingMail"         ,Armor.Type.HeavyArmor     ,14 ,new ACMod(false,0)     ,0 ,Status.NAD.Disadvantage));
+            allArmors.Add(new Armor("ChainMail"        ,Armor.Type.HeavyArmor     ,16 ,new ACMod(false,0)     ,13,Status.NAD.Disadvantage));
+            allArmors.Add(new Armor("Splint"           ,Armor.Type.HeavyArmor     ,17 ,new ACMod(false,0)     ,15,Status.NAD.Disadvantage));
+            allArmors.Add(new Armor("Plate"            ,Armor.Type.HeavyArmor     ,18 ,new ACMod(false,0)     ,15,Status.NAD.Disadvantage));
 
             //Shield
-            allArmors.Add(new Armor("Shield"           ,Armor.Type.Shield         , 2 ,new ACMod(false,0)     ,0 ,Statue.NAD.Normal));
+            allArmors.Add(new Armor("Shield"           ,Armor.Type.Shield         , 2 ,new ACMod(false,0)     ,0 ,Status.NAD.Normal));
         }
     }
 }
